@@ -1,42 +1,59 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 ## Loading and preprocessing the data
 
 Unzip and read the CSV file, converting the 'date' factor to Date class.
 
-```{r load_preprocess, echo=TRUE, cache=TRUE}
+
+```r
 df <- read.table(unzip("activity.zip"), sep=",", header=TRUE, na.strings=c('NA'), colClasses=c(NA, "Date", NA))
 str(df)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 
 
 ## What is mean total number of steps taken per day?
 
-```{r daily_steps_histogram, echo=TRUE}
+
+```r
 totals <- aggregate(df$steps, by=list(Date=df$date), FUN=sum)
 hist(totals$x, main="Histogram of total steps per day", xlab="Total Daily Steps", breaks=10)
 ```
 
+![](PA1_template_files/figure-html/daily_steps_histogram-1.png)
+
 ### Mean steps per day
 
-```{r mean_steps, echo=TRUE}
+
+```r
 mean(totals$x, na.rm=TRUE)
+```
+
+```
+## [1] 10766.19
 ```
 
 ### Median steps per day
 
-```{r median_steps, echo=TRUE}
+
+```r
 median(totals$x, na.rm=TRUE)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
-```{r time_series, echo=TRUE}
+
+```r
 intervals <- aggregate(df$steps, by=list(Interval=df$interval), FUN=mean, na.rm=TRUE)
 names(intervals) <- c("Interval", "Steps")
 plot(intervals$Interval, intervals$Steps, type="l", 
@@ -45,28 +62,47 @@ plot(intervals$Interval, intervals$Steps, type="l",
      xlab="Interval")
 ```
 
+![](PA1_template_files/figure-html/time_series-1.png)
+
 ### Interval with the most steps on average
 
-```{r steppiest_interval, echo=TRUE}
+
+```r
 intervals[which.max(intervals$Steps), ]
+```
+
+```
+##     Interval    Steps
+## 104      835 206.1698
 ```
 
 ## Imputing missing values
 
 ### Number of rows with missing data
 
-```{r na_count, echo=TRUE}
+
+```r
 sum(is.na(df$steps))
 ```
 
+```
+## [1] 2304
+```
+
 ### Percentage of intervals missing steps data
-```{r na_percent, echo=TRUE}
+
+```r
 (sum(is.na(df$steps)) / nrow(df)) * 100
+```
+
+```
+## [1] 13.11475
 ```
 
 ### Impute missing data
 If steps data is missing, use the mean for that same time interval across the whole data set. 
-```{r imputed_df, echo=TRUE}
+
+```r
 imputed_df <- assign("imputed_df", df)
 for (i in 1:nrow(imputed_df)) {
     if (is.na(imputed_df$steps[i])) {
@@ -78,21 +114,34 @@ for (i in 1:nrow(imputed_df)) {
 
 As you would expect, filling in missing values with mean data from the 
 the rest of the data set drives more days toward the daily mean, as shown in the new histogram.
-```{r daily_steps_histogram_imputed, echo=TRUE}
+
+```r
 imp_totals <- aggregate(imputed_df$steps, by=list(Date=imputed_df$date), FUN=sum)
 hist(imp_totals$x, main="Histogram of steps per day with imputed data", xlab="Steps", breaks=10)
 ```
 
+![](PA1_template_files/figure-html/daily_steps_histogram_imputed-1.png)
+
 ### Mean steps per day, using imputed data
 
-```{r mean_steps_imputed, echo=TRUE}
+
+```r
 mean(imp_totals$x)
+```
+
+```
+## [1] 10766.19
 ```
 
 ### Median steps per day, using imputed data
 
-```{r median_steps_imputed, echo=TRUE}
+
+```r
 median(imp_totals$x)
+```
+
+```
+## [1] 10766.19
 ```
 
 
@@ -102,7 +151,8 @@ Add another column to the imputed data set to track whether the
 observation was on a weekend or weekday. Then average together 
 the daily intervals for each day type and display a plot.
 
-```{r day_type, echo=TRUE}
+
+```r
 daytypefun <- function(d) {
     if (weekdays(d) %in% c("Saturday", "Sunday")) {
         return ("weekend")
@@ -123,6 +173,7 @@ xyplot(steps~interval|daytype, data=wkdy_df,
        layout=c(1, 2),
        main="Steps by day type", 
        ylab="Steps", xlab="Interval")
-
 ```
+
+![](PA1_template_files/figure-html/day_type-1.png)
 
